@@ -1,0 +1,173 @@
+import { z } from 'zod';
+
+export const terminalOutcomeValues = ['CONVERTED', 'ABANDONED', 'EXITED', 'HESITATED'];
+
+export const simulationActionValues = [
+  'SCAN_PAGE',
+  'READ_HEADLINE',
+  'SCAN_NAVIGATION',
+  'SEARCH_PRODUCT',
+  'CLICK_PRIMARY_CTA',
+  'CLICK_SECONDARY_CTA',
+  'CHECK_PRICING',
+  'ADD_TO_CART',
+  'CHECKOUT',
+  'PURCHASE',
+  'LOOK_FOR_TRUST_SIGNALS',
+  'INSPECT_FORM',
+  'READ_BIO',
+  'OPEN_REPOSITORY',
+  'VIEW_CONTRIBUTIONS',
+  'OPEN_PINNED_PROJECT',
+  'FOLLOW',
+  'CONTACT',
+  'VIEW_PROJECT',
+  'DOWNLOAD_RESUME',
+  'OPEN_GITHUB',
+  'SEARCH_DOCS',
+  'COPY_CODE',
+  'READ_GUIDE',
+  'OPEN_API_REFERENCE',
+  'READ_ARTICLE',
+  'FILTER_RESULTS',
+  'COMPARE_OPTIONS',
+  'VIEW_PROFILE',
+  'SIGN_UP',
+  'REQUEST_DEMO',
+  'WATCH_VIDEO',
+  'READ_POST',
+  'OPEN_AUTHOR_PROFILE',
+  'SHARE_ARTICLE',
+  'VIEW_DASHBOARD',
+  'FILTER_DATA',
+  'OPEN_REPORT',
+  'ENROLL',
+  'START_LESSON',
+  'SAVE_ITEM',
+  'HESITATE',
+  'BACKTRACK',
+  'EXIT_PAGE',
+  'CONVERT',
+];
+
+export const simulationJsonSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['simulationId', 'status', 'personaJourneys', 'summary'],
+  properties: {
+    simulationId: { type: 'string', format: 'uuid' },
+    status: { type: 'string', enum: ['completed'] },
+    personaJourneys: {
+      type: 'array',
+      minItems: 6,
+      maxItems: 8,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['personaId', 'personaName', 'outcome', 'confidence', 'steps'],
+        properties: {
+          personaId: { type: 'string', format: 'uuid' },
+          personaName: { type: 'string' },
+          outcome: { type: 'string', enum: terminalOutcomeValues },
+          confidence: { type: 'number', minimum: 0, maximum: 1 },
+          steps: {
+            type: 'array',
+            minItems: 1,
+            maxItems: 12,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: [
+                'stepIndex',
+                'state',
+                'observation',
+                'interpretation',
+                'action',
+                'target',
+                'reason',
+                'friction',
+                'trust',
+                'motivation',
+              ],
+              properties: {
+                stepIndex: { type: 'integer', minimum: 1 },
+                state: { type: 'string' },
+                observation: { type: 'string' },
+                interpretation: { type: 'string' },
+                action: { type: 'string', enum: simulationActionValues },
+                target: { type: 'string' },
+                reason: { type: 'string' },
+                friction: { type: 'number', minimum: 0, maximum: 1 },
+                trust: { type: 'number', minimum: 0, maximum: 1 },
+                motivation: { type: 'number', minimum: 0, maximum: 1 },
+              },
+            },
+          },
+        },
+      },
+    },
+    summary: {
+      type: 'object',
+      additionalProperties: false,
+      required: [
+        'totalPersonas',
+        'converted',
+        'abandoned',
+        'exited',
+        'hesitated',
+        'averageConfidence',
+        'topFrictionPoints',
+      ],
+      properties: {
+        totalPersonas: { type: 'integer', minimum: 0 },
+        converted: { type: 'integer', minimum: 0 },
+        abandoned: { type: 'integer', minimum: 0 },
+        exited: { type: 'integer', minimum: 0 },
+        hesitated: { type: 'integer', minimum: 0 },
+        averageConfidence: { type: 'number', minimum: 0, maximum: 1 },
+        topFrictionPoints: {
+          type: 'array',
+          items: { type: 'string' },
+        },
+      },
+    },
+  },
+};
+
+export const simulationStepSchema = z.object({
+  stepIndex: z.number().int().positive(),
+  state: z.string().min(1),
+  observation: z.string().min(1),
+  interpretation: z.string().min(1),
+  action: z.enum(simulationActionValues),
+  target: z.string().min(1),
+  reason: z.string().min(1),
+  friction: z.number().min(0).max(1),
+  trust: z.number().min(0).max(1),
+  motivation: z.number().min(0).max(1),
+});
+
+export const personaJourneySchema = z.object({
+  personaId: z.string().uuid(),
+  personaName: z.string().min(1),
+  outcome: z.enum(terminalOutcomeValues),
+  confidence: z.number().min(0).max(1),
+  steps: z.array(simulationStepSchema).min(1).max(12),
+});
+
+export const simulationSummarySchema = z.object({
+  totalPersonas: z.number().int().nonnegative(),
+  converted: z.number().int().nonnegative(),
+  abandoned: z.number().int().nonnegative(),
+  exited: z.number().int().nonnegative(),
+  hesitated: z.number().int().nonnegative(),
+  averageConfidence: z.number().min(0).max(1),
+  topFrictionPoints: z.array(z.string()),
+});
+
+export const simulationResponseSchema = z.object({
+  simulationId: z.string().uuid(),
+  status: z.literal('completed'),
+  personaJourneys: z.array(personaJourneySchema).min(1),
+  summary: simulationSummarySchema,
+});
