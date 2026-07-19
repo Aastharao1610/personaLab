@@ -290,17 +290,17 @@ const toGroqResponseFormat = (request) => {
 
   return undefined;
 };
-  if (
-    request?.config?.responseMimeType === "application/json" ||
-    relaxedSchema
-  ) {
-    return {
-      type: "json_object",
-    };
-  }
+  // if (
+  //   request?.config?.responseMimeType === "application/json" ||
+  //   relaxedSchema
+  // ) {
+  //   return {
+  //     type: "json_object",
+  //   };
+  // }
 
-  return undefined;
-};
+  // return undefined;
+// };
 
 const toGroqRequestBody = (request, model, options = {}) => {
   const messages = toGroqMessages(request);
@@ -328,10 +328,11 @@ const toGroqRequestBody = (request, model, options = {}) => {
     body.max_tokens = request.config.maxOutputTokens;
   }
 
-  const responseFormat = toGroqResponseFormat(request, {
-    ...options,
-    relaxedSchema,
-  });
+  // const responseFormat = toGroqResponseFormat(request, {
+  //   ...options,
+  //   relaxedSchema,
+  // });
+  const responseFormat = toGroqResponseFormat(request);
 
   if (responseFormat) {
     body.response_format = responseFormat;
