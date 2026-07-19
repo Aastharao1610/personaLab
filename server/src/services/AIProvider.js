@@ -269,18 +269,27 @@ const withSchemaInstruction = (messages, schema) => {
   });
 };
 
-const toGroqResponseFormat = (request, { relaxedSchema = false } = {}) => {
-  if (request?.config?.responseJsonSchema && !relaxedSchema) {
+// const toGroqResponseFormat = (request, { relaxedSchema = false } = {}) => {
+//   if (request?.config?.responseJsonSchema && !relaxedSchema) {
+//     return {
+//       type: "json_schema",
+//       json_schema: {
+//         name: "personalab_response",
+//         schema: request.config.responseJsonSchema,
+//         strict: true,
+//       },
+//     };
+//   }
+
+const toGroqResponseFormat = (request) => {
+  if (request?.config?.responseMimeType === "application/json") {
     return {
-      type: "json_schema",
-      json_schema: {
-        name: "personalab_response",
-        schema: request.config.responseJsonSchema,
-        strict: true,
-      },
+      type: "json_object",
     };
   }
 
+  return undefined;
+};
   if (
     request?.config?.responseMimeType === "application/json" ||
     relaxedSchema
